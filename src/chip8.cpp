@@ -3,6 +3,5 @@
 
 int main(){
     Chip8 chip;
-    chip.run();
     return 0;
 }
