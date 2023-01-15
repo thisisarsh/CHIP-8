@@ -3,6 +3,14 @@
 */
 #include<cstdint>
 #include<fstream>
+
+#define MSB_HI_NIBBLE(b) (((b) >> 12) & 0x0F)
+#define MSB_LO_NIBBLE(b) (((b) >> 8) & 0x0F)
+#define LSB_HI_NIBBLE(b) (((b) >> 4) & 0x0F)
+#define LSB_LO_NIBBLE(b) ((b) & 0x0F)
+#define LSB(b) ((b) & 0x00FF)
+#define IM_MEMORY(b) ((b) & 0x0FFF)
+
 class Chip8{
     public:
         uint8_t registers[16]{};
@@ -22,7 +30,6 @@ class Chip8{
         void LoadROM(char const*);
 
         void run();
-
 };
 
 const unsigned int START_ADDRESS = 0x200;
@@ -56,23 +63,80 @@ Chip8::Chip8(){
     }
 
     pc = START_ADDRESS;
+    index = 0;
 
 
 }
 
 void Chip8::run(){
     opcode = (memory[pc] << 8) | memory[pc + 1];
-    opcode = 3;
-    switch (opcode)
+    pc += 2;
+    switch (MSB_HI_NIBBLE(opcode))
     {
-    case 0:
+
+    case 0x0:
+        switch (LSB_HI_NIBBLE(opcode))
+        {
+        case 0xE0:
+            memset(video, 0, sizeof(video));
+            break;
+        
+        default:
+            break;
+        }
+        break;
+
+    case 0x1:
+        pc = IM_MEMORY(opcode);
+        break;
+
+    case 0x2:
         /* code */
         break;
-    
+    case 0x3:
+        /* code */
+        break;
+    case 0x4:
+        /* code */
+        break;
+    case 0x5:
+        /* code */
+        break;
+
+    case 0x6:
+        registers[MSB_LO_NIBBLE(opcode)] = (LSB(opcode)); 
+        break;
+
+    case 0x7:
+        registers[MSB_LO_NIBBLE(opcode)] += (LSB(opcode)); 
+        break;
+    case 0x8:
+        /* code */
+        break;
+    case 0x9:
+        /* code */
+        break;
+    case 0xA:
+        index = IM_MEMORY(opcode);
+        break;
+    case 0xB:
+        /* code */
+        break;
+    case 0xC:
+        /* code */
+        break;
+    case 0xD:
+        /* code */
+        break;
+    case 0xE:
+        /* code */
+        break;
     default:
         throw std::runtime_error("Unsupported opcode");
     }
 }
+
+
 
 void Chip8::LoadROM(char const* filename){
     std::ifstream file(filename, std::ios::binary | std::ios::ate);
