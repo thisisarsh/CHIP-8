@@ -23,7 +23,7 @@ class Chip8{
         uint8_t soundTimer{};
         uint8_t keypad[16]{};
         uint32_t video[64*32]{};
-        uint16_t opcode;
+        uint16_t opcode{};
 
         Chip8();
 
@@ -64,6 +64,7 @@ Chip8::Chip8(){
 
     pc = START_ADDRESS;
     index = 0;
+    sp = 0;
 
 
 }
@@ -91,7 +92,8 @@ void Chip8::run(){
         break;
 
     case 0x2:
-        /* code */
+        stack[sp++] = pc -= 2;
+        pc = IM_MEMORY(opcode);
         break;
     case 0x3:
         /* code */
@@ -126,7 +128,21 @@ void Chip8::run(){
         /* code */
         break;
     case 0xD:
-        /* code */
+        int vx = registers[MSB_LO_NIBBLE(opcode)];
+        int vy = registers[LSB_HI_NIBBLE(opcode)];
+        int height = registers[LSB_LO_NIBBLE(opcode)];
+        registers[0x0F] = 0; //Flag
+        for(int i = 0 ; i < height ; i++){
+            int pixel = memory[index + i];
+            for (int j = 0; j < 8; j++){
+                if((pixel & (0x80 >> j)) != 0){
+                    if(video[(i + vy)*64 + (j + vx)] == 1){
+                        registers[0x0F] = 1;
+                    }
+                    video[(i + vy)*64 + (j + vx)] ^= 1;
+                }
+            }
+        }
         break;
     case 0xE:
         /* code */
