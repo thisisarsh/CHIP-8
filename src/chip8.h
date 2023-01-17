@@ -3,6 +3,7 @@
 */
 #include<cstdint>
 #include<fstream>
+#include<math.h>
 
 #define MSB_HI_NIBBLE(b) (((b) >> 12) & 0x0F)
 #define MSB_LO_NIBBLE(b) (((b) >> 8) & 0x0F)
@@ -95,14 +96,23 @@ void Chip8::run(){
         stack[sp++] = pc -= 2;
         pc = IM_MEMORY(opcode);
         break;
+
     case 0x3:
-        /* code */
+        if(registers[MSB_LO_NIBBLE(opcode)] == LSB(opcode)){
+            pc += 2;
+        }
         break;
+
     case 0x4:
-        /* code */
+        if(registers[MSB_LO_NIBBLE(opcode)] != LSB(opcode)){
+            pc += 2;
+        }
         break;
+
     case 0x5:
-        /* code */
+        if(registers[MSB_LO_NIBBLE(opcode)] == registers[LSB_HI_NIBBLE(opcode)]){
+            pc += 2;
+        }
         break;
 
     case 0x6:
@@ -136,26 +146,49 @@ void Chip8::run(){
             break;
 
         case 0x5:
-        //change this
-            registers[0x0F] = ((registers[MSB_LO_NIBBLE(opcode)] += registers[LSB_HI_NIBBLE(opcode)]) > 255) ? 1 : 0;
+            registers[0x0F] = (registers[MSB_LO_NIBBLE(opcode)] > registers[LSB_HI_NIBBLE(opcode)]) ? 1 : 0;
+            registers[MSB_LO_NIBBLE(opcode)] -= registers[LSB_HI_NIBBLE(opcode)];
+            break;
+
+        case 0x6:
+            registers[0x0F] = (registers[LSB_HI_NIBBLE(opcode)] & 1);
+            registers[MSB_LO_NIBBLE(opcode)] = (registers[LSB_HI_NIBBLE(opcode)] >> 1);
+            break;
+
+        case 0x7:
+            registers[0x0F] = (registers[LSB_HI_NIBBLE(opcode)] > registers[MSB_LO_NIBBLE(opcode)]) ? 1 : 0;
+            registers[LSB_HI_NIBBLE(opcode)] -= registers[MSB_LO_NIBBLE(opcode)];
+            break;
+        
+        case 0xE:
+            registers[0x0F] = (registers[LSB_HI_NIBBLE(opcode)] & 0x80);
+            registers[MSB_LO_NIBBLE(opcode)] = (registers[LSB_HI_NIBBLE(opcode)] << 1);
             break;
 
         default:
             break;
         }
         break;
+
     case 0x9:
-        /* code */
+        if(registers[MSB_LO_NIBBLE(opcode)] != registers[LSB_HI_NIBBLE(opcode)]){
+            pc += 2;
+        }
         break;
+
     case 0xA:
         index = IM_MEMORY(opcode);
         break;
+
     case 0xB:
-        /* code */
+        /* BXNN */
+        pc = registers[MSB_LO_NIBBLE(opcode)] + IM_MEMORY(opcode);
         break;
+
     case 0xC:
-        /* code */
+        registers[MSB_LO_NIBBLE(opcode)] = ((rand() % 0xFFFF) & LSB(opcode));
         break;
+
     case 0xD:
         int vx = registers[MSB_LO_NIBBLE(opcode)];
         int vy = registers[LSB_HI_NIBBLE(opcode)];
@@ -173,9 +206,75 @@ void Chip8::run(){
             }
         }
         break;
+
     case 0xE:
-        /* code */
+        switch (LSB(opcode))
+        {
+
+        case 0x9E:
+            if(keypad[registers[MSB_LO_NIBBLE(opcode)]] == 1){
+                pc += 2;
+            }
+            break;
+        
+        case 0xA1:
+            if(keypad[registers[MSB_LO_NIBBLE(opcode)]] != 1){
+                pc += 2;
+            }
+            break;
+
+        default:
+            break;
+        }
         break;
+
+    case 0xF:
+        switch (LSB(opcode))
+        {
+        case 0x07:
+            registers[MSB_LO_NIBBLE(opcode)] = delayTimer;
+            break;
+
+        case 0x0A:
+            /* code */
+            break;
+        
+        case 0x15:
+            delayTimer = registers[MSB_LO_NIBBLE(opcode)];
+            break;
+
+        case 0x18:
+            soundTimer = registers[MSB_LO_NIBBLE(opcode)];
+            break;
+
+        case 0x1E:
+            registers[0x0F] = (index += registers[MSB_LO_NIBBLE(opcode)]) > 0x0FFF ? 1 : 0;
+            break;
+
+        case 0x29:
+            index = FONTSET_START_ADDRESS + ((registers[MSB_LO_NIBBLE(opcode)] & 0x0F) * 5);
+            break;
+        
+        case 0x33:
+            uint8_t num = registers[MSB_LO_NIBBLE(opcode)];
+            for(uint8_t i = 0 ; num > 0 ; i++){
+                memory[index + i] = (uint8_t)(num/pow(10,(3-i))) % 10;
+            }
+            break;
+
+        case 0x55:
+            /* code */
+            break;
+
+        case 0x65:
+            /* code */
+            break;
+
+        default:
+            break;
+        }
+        break;
+
     default:
         throw std::runtime_error("Unsupported opcode");
     }
