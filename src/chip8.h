@@ -113,7 +113,36 @@ void Chip8::run(){
         registers[MSB_LO_NIBBLE(opcode)] += (LSB(opcode)); 
         break;
     case 0x8:
-        /* code */
+        switch (LSB_LO_NIBBLE(opcode))
+        {
+        case 0x0:
+            registers[MSB_LO_NIBBLE(opcode)] = registers[LSB_HI_NIBBLE(opcode)];
+            break;
+
+        case 0x1:
+            registers[MSB_LO_NIBBLE(opcode)] |= registers[LSB_HI_NIBBLE(opcode)];
+            break;
+
+        case 0x2:
+            registers[MSB_LO_NIBBLE(opcode)] &= registers[LSB_HI_NIBBLE(opcode)];
+            break;
+
+        case 0x3:
+            registers[MSB_LO_NIBBLE(opcode)] ^= registers[LSB_HI_NIBBLE(opcode)];
+            break;
+
+        case 0x4:
+            registers[0x0F] = ((registers[MSB_LO_NIBBLE(opcode)] += registers[LSB_HI_NIBBLE(opcode)]) > 255) ? 1 : 0;
+            break;
+
+        case 0x5:
+        //change this
+            registers[0x0F] = ((registers[MSB_LO_NIBBLE(opcode)] += registers[LSB_HI_NIBBLE(opcode)]) > 255) ? 1 : 0;
+            break;
+
+        default:
+            break;
+        }
         break;
     case 0x9:
         /* code */
