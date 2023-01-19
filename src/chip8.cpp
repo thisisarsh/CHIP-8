@@ -45,8 +45,12 @@ Chip8::Chip8(){
     pc = START_ADDRESS;
     index = 0;
     sp = 0;
-
-
+    delayTimer = 0;
+    soundTimer = 0;
+    
+    memset(registers, 0, sizeof(registers));
+    memset(stack, 0, sizeof(stack));
+    memset(memory, 0, sizeof(memory));
 }
 
 void Chip8::run(){
@@ -271,8 +275,6 @@ void Chip8::run(){
     }
 }
 
-
-
 void Chip8::LoadROM(char const* filename){
     std::ifstream file(filename, std::ios::binary | std::ios::ate);
     std::ifstream obj();
@@ -285,7 +287,7 @@ void Chip8::LoadROM(char const* filename){
 		{
 			memory[START_ADDRESS + i] = buffer[i];
 		}
-
         delete[] buffer;
     }
 }
+
