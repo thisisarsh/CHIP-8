@@ -21,4 +21,5 @@ Some of the instructions included in the provided code are:
 - 0x8XY1: set the value of register X to the bitwise OR of register X and register Y
 - 0x8XY2: set the value of register X to the bitwise AND of register X and register Y
 - 0x8XY3: set the value of register X to the bitwise XOR of register X and register Y
+
 There are more instructions not listed here.
