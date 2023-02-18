@@ -289,5 +289,24 @@ void Chip8::LoadROM(char const* filename){
 		}
         delete[] buffer;
     }
+ void Chip8::drawGraphics(){
+    uint8_t x = registers[MSB_LO_NIBBLE(opcode)];
+    uint8_t y = registers[LSB_HI_NIBBLE(opcode)];
+    uint8_t height = LSB_NIBBLE(opcode);
+    uint8_t pixel;
+
+    registers[0xF] = 0;
+    for (int yline = 0; yline < height; yline++){
+        pixel = memory[index + yline];
+        for(int xline = 0; xline < 8; xline++){
+            if((pixel & (0x80 >> xline)) != 0){
+                if(video[(x + xline + ((y + yline) * 64))] == 1){
+                    registers[0xF] = 1;
+                }
+                video[x + xline + ((y + yline) * 64)] ^= 1;
+            }
+        }
+    }
+}
 }
 
